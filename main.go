@@ -15,24 +15,35 @@ var secretKey = flag.String("secret", "", "Your secret key. Must contain at leas
 func main() {
 	flag.Parse()
 
+	if len(*secretKey) == 0 {
+		fmt.Fprintln(os.Stderr, "no secret provided")
+		os.Exit(1)
+	}
+
 	switch *mode {
 	case "cipher":
 		plainText := getUserInput("enter your text to cipher: ")
 		fmt.Println(plainText)
-		fmt.Println(cipherer.Cipher(plainText, *secretKey))
-	// ..
+
+		cipheredText, err := cipherer.Cipher(plainText, *secretKey)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error encrypting text: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(cipheredText)
 	case "decipher":
 		cipheredText := getUserInput("enter your text to decipher: ")
-		fmt.Println(cipheredText)
-		fmt.Println(cipherer.Decipher(cipheredText, *secretKey))
-	// ..
+
+		decipheredText, err := cipherer.Decipher(cipheredText, *secretKey)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Decription error: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(decipheredText)
 	default:
 		fmt.Println("please specify cipher or decipher")
-		os.Exit(1)
-	}
-
-	if len(*secretKey) == 0 {
-		fmt.Println("no secret provided")
 		os.Exit(1)
 	}
 

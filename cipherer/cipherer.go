@@ -2,38 +2,41 @@ package cipherer
 
 import (
 	"encoding/base64"
-	"fmt"
-	"os"
+	"errors"
 )
 
-func Cipher(rawString, secret string) string {
-  processed := process([]byte(rawString), []byte(secret))
-  return base64.StdEncoding.EncodeToString(processed)
+func Cipher(rawString, secret string) (string, error) {
+  if len(secret) == 0 {
+    return "", errors.New("secret key cant be empty")
+  }
+  processed, err := process([]byte(rawString), []byte(secret))
+  if err != nil {
+    return "", err
+  }
+  return base64.StdEncoding.EncodeToString(processed), nil
 }
 
-func Decipher(cipheredText, secret string) string {
+func Decipher(cipheredText, secret string) (string, error) {
+  if len(secret) == 0 {
+    return "", errors.New("secret key cant be empty")
+  }
   cipheredBytes, err := base64.StdEncoding.DecodeString(cipheredText)
   if err != nil {
-    fmt.Print("error occured while decoding cipheredtext to base64")
-    os.Exit(1)
+    return "", errors.New("error occured while decoding cipheredtext to base64")
   }
 
-  decryptedBytes := process(cipheredBytes, []byte(secret))
-  if len(decryptedBytes) == 0 {
-    fmt.Println("decryption failed, invalid input, exiting...")
-    os.Exit(1)
+  decryptedBytes, err := process(cipheredBytes, []byte(secret))
+
+  if err != nil {
+    return "", errors.New("decryption failed, invalid input, exiting...")
   }
 
-  return string(decryptedBytes)
+  return string(decryptedBytes), nil
 }
 
-func process(input, secret []byte) []byte {
-  if len(secret) == 0 {
-    fmt.Println("secret key cannot be empty. Fix it")
-    os.Exit(1)
-  }
+func process(input, secret []byte) ([]byte, error) {
   for i, b := range input {
     input[i] = b ^ secret[i % len(secret)]
   }
-  return input
+  return input, nil
 }
